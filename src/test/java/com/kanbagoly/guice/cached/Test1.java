@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Assertions;
 
 import java.util.concurrent.TimeUnit;
 
+// TODO: Test for negative duration & maxSize
 class Test1 {
 
     @Test
@@ -12,7 +13,7 @@ class Test1 {
         TestClass cached = new TestClass();
         cached.method();
         cached.method();
-        Assertions.assertEquals(1, cached.invocationCounter);
+        Assertions.assertEquals(1, cached.numberOfInvocations());
     }
 
     static class TestClass {
@@ -21,7 +22,7 @@ class Test1 {
 
         @Cached(duration = 1, timeUnit = TimeUnit.DAYS, maxSize = 10)
         int method() {
-            invocationCounter += 1;
+            ++invocationCounter;
             return 1;
         }
 
