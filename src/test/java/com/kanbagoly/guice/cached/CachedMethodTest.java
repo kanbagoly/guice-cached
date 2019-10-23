@@ -16,7 +16,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class CachedMethodTest {
+class CachedMethodTest {
 
     private static final int CACHE_TIME_TO_LIVE_IN_MS = 200;
 
@@ -30,12 +30,12 @@ public class CachedMethodTest {
     private Expensive expensive;
 
     @BeforeAll
-    public static void createInjector() {
+    static void createInjector() {
         injector = Guice.createInjector(new MethodCacheModule());
     }
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         expensive = injector.getInstance(Expensive.class);
     }
     public static class Expensive {
@@ -107,7 +107,7 @@ public class CachedMethodTest {
     }
 
     @Test
-    public void cacheShouldHandleMoreParameters() {
+    void cacheShouldHandleMoreParameters() {
         int expectedSum = 0;
         for (String string: STRINGS_WITH_SAME_HASCODES) {
             expectedSum += string.length();
@@ -124,7 +124,7 @@ public class CachedMethodTest {
      * have same hash values.
      */
     @Test
-    public void verifyThatObjectsHaveSameHashValues() {
+    void verifyThatObjectsHaveSameHashValues() {
         Iterable<Integer> hashCodes = Iterables.transform(STRINGS_WITH_SAME_HASCODES,
                 new Function<String, Integer>() {
                     @Override
@@ -136,7 +136,7 @@ public class CachedMethodTest {
     }
 
     @Test
-    public void cacheShouldDistinguishTwoDifferentObjectWithSameHash() {
+    void cacheShouldDistinguishTwoDifferentObjectWithSameHash() {
         for(String string: STRINGS_WITH_SAME_HASCODES) {
             expensive.size(string);
         }
@@ -145,7 +145,7 @@ public class CachedMethodTest {
     }
 
     @Test
-    public void shouldBeExecutedOnceWithMultipleParameters() {
+    void shouldBeExecutedOnceWithMultipleParameters() {
         String[] params = {"First", "Second"};
 
         expensive.sumOfSizes(params);
@@ -154,7 +154,8 @@ public class CachedMethodTest {
         assertEquals(1, expensive.getCounter());
     }
 
-    public void shouldReceiveAnExceptionIfSomethingGoesBadInsideTheMethod() throws Exception {
+    @Test
+    void shouldReceiveAnExceptionIfSomethingGoesBadInsideTheMethod() throws Exception {
         assertThrows(Exception.class, () -> expensive.dangerous("Die"));
     }
 
