@@ -1,10 +1,9 @@
 package com.kanbagoly.guice.cached;
 
+import com.google.inject.AbstractModule;
 
 import static com.google.inject.matcher.Matchers.annotatedWith;
 import static com.google.inject.matcher.Matchers.any;
-
-import com.google.inject.AbstractModule;
 
 /**
  * <p>
@@ -23,13 +22,11 @@ import com.google.inject.AbstractModule;
  *
  * @see com.kanbagoly.guice.cached.Cached
  */
-public class MethodCacheModule extends AbstractModule {
+public class CachedMethodModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        CachedMethodInterceptor interceptor = new CachedMethodInterceptor();
-        requestInjection(interceptor);
-        bindInterceptor(any(), annotatedWith(Cached.class), interceptor);
+        bindInterceptor(any(), annotatedWith(Cached.class), new CachedMethodInterceptor());
     }
 
 }

@@ -31,7 +31,7 @@ class CachedMethodTest {
 
     @BeforeAll
     static void createInjector() {
-        injector = Guice.createInjector(new MethodCacheModule());
+        injector = Guice.createInjector(new CachedMethodModule());
     }
 
     @BeforeEach
