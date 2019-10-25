@@ -21,10 +21,6 @@ import com.google.inject.AbstractModule;
  *     ...
  * }</pre>
  *
- * <p>
- * This class requires Guava (groupId=com.google.guava, artifactId=guava, version>=15.0)
- * </p>
- *
  * @see com.kanbagoly.guice.cached.Cached
  */
 public class MethodCacheModule extends AbstractModule {

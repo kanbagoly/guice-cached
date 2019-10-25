@@ -10,7 +10,6 @@ import com.google.common.base.Preconditions;
  * It is necessary to use this wrapper class as Guava's cache
  * couldn't handle array as a key of the cache. The problem is that
  * the cache can't recognise if the content of two arrays are equal.
- * (Tested with Guava v16.0)
  */
 class ParameterContainer {
 
