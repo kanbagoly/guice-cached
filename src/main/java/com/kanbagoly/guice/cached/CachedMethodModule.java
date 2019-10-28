@@ -9,14 +9,14 @@ import static com.google.inject.matcher.Matchers.any;
  * <p>
  * This module provide a solution to create cached methods.</br>
  * This can be a good idea if the method execute something expensive,
- * like load data from the database or create a big graph...
+ * like loading data from the database or creating a big graph...
  * </p>
  *
  * To achieve this simply install this module in your Guice module and mark
- * the chosen method with the {@link Cached} annotation like this:
+ * the chosen method with the {@link Cached} annotation like:
  * <pre>
  * {@literal @}Cached(duration = 1, timeUnit = TimeUnit.HOURS, maxSize = 100)
- * Bean selectBeanFromDatabase(long id) {
+ * Bean loadBeanFromDatabase(long id) {
  *     ...
  * }</pre>
  *

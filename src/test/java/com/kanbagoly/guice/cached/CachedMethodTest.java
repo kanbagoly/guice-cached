@@ -1,5 +1,7 @@
 package com.kanbagoly.guice.cached;
 
+import static java.util.stream.Collectors.toSet;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -7,9 +9,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.junit.jupiter.api.BeforeAll;
@@ -18,16 +17,16 @@ import org.junit.jupiter.api.Test;
 
 class CachedMethodTest {
 
-    private static final int CACHE_TIME_TO_LIVE_IN_MS = 200;
+    private static final int TIME_TO_LIVE_IN_MS = 200;
 
     private static final int CACHE_SIZE = 5;
 
-    private static final List<String> STRINGS_WITH_SAME_HASCODES = Arrays.asList(
+    private static final List<String> STRINGS_WITH_SAME_HASH_CODES = Arrays.asList(
             "Microcomputers: the unredeemed lollipop...",
             "Incentively, my dear, I don't tessellate a derangement.");
 
     private static Injector injector;
-    private Expensive expensive;
+    private CachedMethods cached;
 
     @BeforeAll
     static void createInjector() {
@@ -36,60 +35,25 @@ class CachedMethodTest {
 
     @BeforeEach
     void setUp() {
-        expensive = injector.getInstance(Expensive.class);
-    }
-    public static class Expensive {
-
-        private int counter = 0;
-
-        @Cached(duration = CACHE_TIME_TO_LIVE_IN_MS, timeUnit = TimeUnit.MILLISECONDS, maxSize = CACHE_SIZE)
-        public Integer size(String string) {
-            ++counter;
-            return string.length();
-        }
-
-        @Cached(duration = CACHE_TIME_TO_LIVE_IN_MS, timeUnit = TimeUnit.MILLISECONDS, maxSize = CACHE_SIZE)
-        public Integer sumOfSizes(String... strings) {
-            ++counter;
-            int sum = 0;
-            for (String string: strings) {
-                sum += string.length();
-            }
-            return sum;
-        }
-
-        @Cached(duration = CACHE_TIME_TO_LIVE_IN_MS, timeUnit = TimeUnit.MILLISECONDS, maxSize = CACHE_SIZE)
-        public Integer meaningOfLife() {
-            ++counter;
-            return 42;
-        }
-
-        @Cached(duration = CACHE_TIME_TO_LIVE_IN_MS, timeUnit = TimeUnit.MILLISECONDS, maxSize = CACHE_SIZE)
-        public Integer dangerous(String strings) {
-            throw new NullPointerException();
-        }
-
-        public int getCounter() {
-            return counter;
-        }
+        cached = injector.getInstance(CachedMethods.class);
     }
 
     @Test
-    void methodWithoutParameterShouldBeAbleToUseCahce() {
-        expensive.meaningOfLife();
+    void methodWithoutParameterShouldBeAbleToUseCache() {
+        cached.meaningOfLife();
 
-        expensive.meaningOfLife();
+        cached.meaningOfLife();
 
-        assertEquals(1, expensive.getCounter());
+        assertEquals(1, cached.getNumberOfCalls());
     }
 
     @Test
     void methodShouldBeExecutedOnlyOnceIfCalledWithTheSameParameters() {
-        expensive.size("Hi");
+        cached.size("Hi");
 
-        expensive.size("Hi");
+        cached.size("Hi");
 
-        assertEquals(1, expensive.getCounter());
+        assertEquals(1, cached.getNumberOfCalls());
     }
 
     /**
@@ -98,23 +62,23 @@ class CachedMethodTest {
      */
     @Test
     void methodShouldBeExecutedTwiceIfTimeToLiveHaveExpired() throws InterruptedException {
-        expensive.size("Ho");
-        Thread.sleep(CACHE_TIME_TO_LIVE_IN_MS * 2);
+        cached.size("Ho");
+        Thread.sleep(TIME_TO_LIVE_IN_MS * 2);
 
-        expensive.size("Ho");
+        cached.size("Ho");
 
-        assertEquals(2, expensive.getCounter());
+        assertEquals(2, cached.getNumberOfCalls());
     }
 
     @Test
     void cacheShouldHandleMoreParameters() {
         int expectedSum = 0;
-        for (String string: STRINGS_WITH_SAME_HASCODES) {
+        for (String string: STRINGS_WITH_SAME_HASH_CODES) {
             expectedSum += string.length();
         }
 
-        String[] parameters = STRINGS_WITH_SAME_HASCODES.toArray(new String[0]);
-        int result = expensive.sumOfSizes(parameters);
+        String[] parameters = STRINGS_WITH_SAME_HASH_CODES.toArray(new String[0]);
+        int result = cached.sumOfSizes(parameters);
 
         assertEquals(expectedSum, result);
     }
@@ -125,38 +89,71 @@ class CachedMethodTest {
      */
     @Test
     void verifyThatObjectsHaveSameHashValues() {
-        Iterable<Integer> hashCodes = Iterables.transform(STRINGS_WITH_SAME_HASCODES,
-                new Function<String, Integer>() {
-                    @Override
-                    public Integer apply(String object) {
-                        return object.hashCode();
-                    }
-                });
-        assertEquals(1, Sets.newHashSet(hashCodes).size());
+        assertHaveSameHashCodes(STRINGS_WITH_SAME_HASH_CODES);
     }
 
     @Test
     void cacheShouldDistinguishTwoDifferentObjectWithSameHash() {
-        for(String string: STRINGS_WITH_SAME_HASCODES) {
-            expensive.size(string);
+        for(String string: STRINGS_WITH_SAME_HASH_CODES) {
+            cached.size(string);
         }
 
-        assertEquals(2, expensive.getCounter());
+        assertEquals(2, cached.getNumberOfCalls());
     }
 
     @Test
     void shouldBeExecutedOnceWithMultipleParameters() {
         String[] params = {"First", "Second"};
 
-        expensive.sumOfSizes(params);
-        expensive.sumOfSizes(params.clone());
+        cached.sumOfSizes(params);
+        cached.sumOfSizes(params.clone());
 
-        assertEquals(1, expensive.getCounter());
+        assertEquals(1, cached.getNumberOfCalls());
     }
 
     @Test
     void shouldReceiveAnExceptionIfSomethingGoesBadInsideTheMethod() throws Exception {
-        assertThrows(Exception.class, () -> expensive.dangerous("Die"));
+        assertThrows(Exception.class, () -> cached.dangerous("Die"));
+    }
+
+    public static class CachedMethods {
+
+        private int numberOfCalls = 0;
+
+        @Cached(duration = TIME_TO_LIVE_IN_MS, timeUnit = TimeUnit.MILLISECONDS, maxSize = CACHE_SIZE)
+        public Integer size(String string) {
+            ++numberOfCalls;
+            return string.length();
+        }
+
+        @Cached(duration = TIME_TO_LIVE_IN_MS, timeUnit = TimeUnit.MILLISECONDS, maxSize = CACHE_SIZE)
+        public Integer sumOfSizes(String... strings) {
+            ++numberOfCalls;
+            int sum = 0;
+            for (String string: strings) {
+                sum += string.length();
+            }
+            return sum;
+        }
+
+        @Cached(duration = TIME_TO_LIVE_IN_MS, timeUnit = TimeUnit.MILLISECONDS, maxSize = CACHE_SIZE)
+        public Integer meaningOfLife() {
+            ++numberOfCalls;
+            return 42;
+        }
+
+        @Cached(duration = TIME_TO_LIVE_IN_MS, timeUnit = TimeUnit.MILLISECONDS, maxSize = CACHE_SIZE)
+        public Integer dangerous(String value) {
+            throw new RuntimeException();
+        }
+
+        public int getNumberOfCalls() {
+            return numberOfCalls;
+        }
+    }
+
+    private static void assertHaveSameHashCodes(List<String> values) {
+        assertThat(values.stream().map(String::hashCode).collect(toSet())).hasSize(1);
     }
 
 }

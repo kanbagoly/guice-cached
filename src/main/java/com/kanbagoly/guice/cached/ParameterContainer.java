@@ -1,15 +1,15 @@
 package com.kanbagoly.guice.cached;
 
-import java.util.Arrays;
-
 import com.google.common.base.Preconditions;
+
+import java.util.Arrays;
 
 /**
  * Provide equals() and hashCode() methods for the wrapped array.
  *
- * It is necessary to use this wrapper class as Guava's cache
- * couldn't handle array as a key of the cache. The problem is that
- * the cache can't recognise if the content of two arrays are equal.
+ * It is necessary to use this wrapper class due to how Java's equals is
+ * implemented and that is why Guava's cache can't handle array as a key
+ * of the cache.
  */
 class ParameterContainer {
 

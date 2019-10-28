@@ -16,21 +16,23 @@ class CachedMethodInterceptor implements MethodInterceptor {
 
     @Override
     public Object invoke(final MethodInvocation invocation) throws ExecutionException {
-        Cache<ParameterContainer, Object> cache = caches.computeIfAbsent(invocation.getMethod(), method -> {
-            Cached settings = method.getAnnotation(Cached.class);
-            return CacheBuilder.newBuilder()
-                    .expireAfterWrite(settings.duration(), settings.timeUnit())
-                    .maximumSize(settings.maxSize())
-                    .build();
-        });
-        Object[] parameters = invocation.getArguments();
-        return cache.get(new ParameterContainer(parameters), () -> {
+        Cache<ParameterContainer, Object> cache = caches.computeIfAbsent(invocation.getMethod(),
+                method -> createCache(method.getAnnotation(Cached.class)));
+        ParameterContainer parameters = new ParameterContainer(invocation.getArguments());
+        return cache.get(parameters, () -> {
             try {
                 return invocation.proceed();
             } catch (Throwable e) {
                 throw new ExecutionException(e);
             }
         });
+    }
+
+    private static Cache<ParameterContainer, Object> createCache(Cached settings) {
+        return CacheBuilder.newBuilder()
+                .expireAfterWrite(settings.duration(), settings.timeUnit())
+                .maximumSize(settings.maxSize())
+                .build();
     }
 
 }
