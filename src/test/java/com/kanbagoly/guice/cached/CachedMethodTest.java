@@ -1,19 +1,19 @@
 package com.kanbagoly.guice.cached;
 
-import static java.util.stream.Collectors.toSet;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.stream.Collectors.toSet;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CachedMethodTest {
 
@@ -44,7 +44,7 @@ class CachedMethodTest {
 
         cached.meaningOfLife();
 
-        assertEquals(1, cached.getNumberOfCalls());
+        assertThat(cached.getNumberOfExecution()).isEqualTo(1);
     }
 
     @Test
@@ -53,7 +53,7 @@ class CachedMethodTest {
 
         cached.size("Hi");
 
-        assertEquals(1, cached.getNumberOfCalls());
+        assertThat(cached.getNumberOfExecution()).isEqualTo(1);
     }
 
     /**
@@ -67,7 +67,7 @@ class CachedMethodTest {
 
         cached.size("Ho");
 
-        assertEquals(2, cached.getNumberOfCalls());
+        assertThat(cached.getNumberOfExecution()).isEqualTo(2);
     }
 
     @Test
@@ -80,7 +80,7 @@ class CachedMethodTest {
         String[] parameters = STRINGS_WITH_SAME_HASH_CODES.toArray(new String[0]);
         int result = cached.sumOfSizes(parameters);
 
-        assertEquals(expectedSum, result);
+        assertThat(result).isEqualTo(expectedSum);
     }
 
     /**
@@ -98,7 +98,7 @@ class CachedMethodTest {
             cached.size(string);
         }
 
-        assertEquals(2, cached.getNumberOfCalls());
+        assertThat(cached.getNumberOfExecution()).isEqualTo(2);
     }
 
     @Test
@@ -108,27 +108,28 @@ class CachedMethodTest {
         cached.sumOfSizes(params);
         cached.sumOfSizes(params.clone());
 
-        assertEquals(1, cached.getNumberOfCalls());
+        assertThat(cached.getNumberOfExecution()).isEqualTo(1);
     }
 
     @Test
-    void shouldReceiveAnExceptionIfSomethingGoesBadInsideTheMethod() throws Exception {
-        assertThrows(Exception.class, () -> cached.dangerous("Die"));
+    void shouldReceiveAnExceptionIfSomethingGoesBadInsideTheMethod() {
+        assertThatThrownBy(() -> cached.dangerous("Die"))
+                .isInstanceOf(ExecutionException.class);
     }
 
     public static class CachedMethods {
 
-        private int numberOfCalls = 0;
+        private int numberOfExecutions = 0;
 
-        @Cached(duration = TIME_TO_LIVE_IN_MS, timeUnit = TimeUnit.MILLISECONDS, maxSize = CACHE_SIZE)
+        @Cached(duration = TIME_TO_LIVE_IN_MS, timeUnit = MILLISECONDS, maxSize = CACHE_SIZE)
         public Integer size(String string) {
-            ++numberOfCalls;
+            ++numberOfExecutions;
             return string.length();
         }
 
-        @Cached(duration = TIME_TO_LIVE_IN_MS, timeUnit = TimeUnit.MILLISECONDS, maxSize = CACHE_SIZE)
+        @Cached(duration = TIME_TO_LIVE_IN_MS, timeUnit = MILLISECONDS, maxSize = CACHE_SIZE)
         public Integer sumOfSizes(String... strings) {
-            ++numberOfCalls;
+            ++numberOfExecutions;
             int sum = 0;
             for (String string: strings) {
                 sum += string.length();
@@ -136,19 +137,19 @@ class CachedMethodTest {
             return sum;
         }
 
-        @Cached(duration = TIME_TO_LIVE_IN_MS, timeUnit = TimeUnit.MILLISECONDS, maxSize = CACHE_SIZE)
+        @Cached(duration = TIME_TO_LIVE_IN_MS, timeUnit = MILLISECONDS, maxSize = CACHE_SIZE)
         public Integer meaningOfLife() {
-            ++numberOfCalls;
+            ++numberOfExecutions;
             return 42;
         }
 
-        @Cached(duration = TIME_TO_LIVE_IN_MS, timeUnit = TimeUnit.MILLISECONDS, maxSize = CACHE_SIZE)
+        @Cached(duration = TIME_TO_LIVE_IN_MS, timeUnit = MILLISECONDS, maxSize = CACHE_SIZE)
         public Integer dangerous(String value) {
             throw new RuntimeException();
         }
 
-        public int getNumberOfCalls() {
-            return numberOfCalls;
+        public int getNumberOfExecution() {
+            return numberOfExecutions;
         }
     }
 
