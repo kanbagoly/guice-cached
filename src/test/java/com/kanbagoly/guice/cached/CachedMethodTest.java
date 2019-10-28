@@ -21,10 +21,6 @@ class CachedMethodTest {
 
     private static final int CACHE_SIZE = 5;
 
-    private static final List<String> STRINGS_WITH_SAME_HASH_CODES = Arrays.asList(
-            "Microcomputers: the unredeemed lollipop...",
-            "Incentively, my dear, I don't tessellate a derangement.");
-
     private static Injector injector;
     private CachedMethods cached;
 
@@ -48,7 +44,12 @@ class CachedMethodTest {
     }
 
     @Test
-    void methodShouldBeExecutedOnlyOnceIfCalledWithTheSameParameters() {
+    void cachedMethodShouldReturnCorrectValue() {
+        assertThat(cached.meaningOfLife()).isEqualTo(42);
+    }
+
+    @Test
+    void methodShouldBeExecutedOnlyOnceWhenCalledWithTheSameParameters() {
         cached.size("Hi");
 
         cached.size("Hi");
@@ -56,10 +57,6 @@ class CachedMethodTest {
         assertThat(cached.getNumberOfExecution()).isOne();
     }
 
-    /**
-     * Bit hard to test. It is not guaranteed that the
-     * cache will be refresh the value immediately.
-     */
     @Test
     void methodShouldBeExecutedTwiceIfTimeToLiveHaveExpired() {
         cached.size("Ho");
@@ -72,9 +69,12 @@ class CachedMethodTest {
 
     @Test
     void cacheShouldDistinguishTwoDifferentObjectWithSameHash() {
-        assertHaveSameHashCodes(STRINGS_WITH_SAME_HASH_CODES);
+        List<String> sameHashCodes = Arrays.asList(
+                "Microcomputers: the unredeemed lollipop...",
+                "Incentively, my dear, I don't tessellate a derangement.");
+        assertHaveSameHashCodes(sameHashCodes);
 
-        STRINGS_WITH_SAME_HASH_CODES.forEach(value -> cached.size(value));
+        sameHashCodes.forEach(value -> cached.size(value));
 
         assertThat(cached.getNumberOfExecution()).isEqualTo(2);
     }
@@ -90,8 +90,8 @@ class CachedMethodTest {
     }
 
     @Test
-    void shouldReceiveAnExceptionIfSomethingGoesBadInsideTheMethod() {
-        assertThatThrownBy(() -> cached.dangerous("Die"))
+    void shouldReceiveAnExceptionIfExecutionFailed() {
+        assertThatThrownBy(() -> cached.dangerous("throw exception"))
                 .isInstanceOf(ExecutionException.class);
     }
 
