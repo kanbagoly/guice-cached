@@ -39,12 +39,12 @@ class CachedMethodTest {
     }
 
     @Test
-    void methodWithoutParameterShouldBeAbleToUseCache() {
+    void parameterlessMethodShouldAbleToBeCached() {
         cached.meaningOfLife();
 
         cached.meaningOfLife();
 
-        assertThat(cached.getNumberOfExecution()).isEqualTo(1);
+        assertThat(cached.getNumberOfExecution()).isOne();
     }
 
     @Test
@@ -53,7 +53,7 @@ class CachedMethodTest {
 
         cached.size("Hi");
 
-        assertThat(cached.getNumberOfExecution()).isEqualTo(1);
+        assertThat(cached.getNumberOfExecution()).isOne();
     }
 
     /**
@@ -61,9 +61,9 @@ class CachedMethodTest {
      * cache will be refresh the value immediately.
      */
     @Test
-    void methodShouldBeExecutedTwiceIfTimeToLiveHaveExpired() throws InterruptedException {
+    void methodShouldBeExecutedTwiceIfTimeToLiveHaveExpired() {
         cached.size("Ho");
-        Thread.sleep(TIME_TO_LIVE_IN_MS * 2);
+        sleep(2 * TIME_TO_LIVE_IN_MS);
 
         cached.size("Ho");
 
@@ -71,32 +71,10 @@ class CachedMethodTest {
     }
 
     @Test
-    void cacheShouldHandleMoreParameters() {
-        int expectedSum = 0;
-        for (String string: STRINGS_WITH_SAME_HASH_CODES) {
-            expectedSum += string.length();
-        }
-
-        String[] parameters = STRINGS_WITH_SAME_HASH_CODES.toArray(new String[0]);
-        int result = cached.sumOfSizes(parameters);
-
-        assertThat(result).isEqualTo(expectedSum);
-    }
-
-    /**
-     * Not a real test. Just verify that the objects
-     * have same hash values.
-     */
-    @Test
-    void verifyThatObjectsHaveSameHashValues() {
-        assertHaveSameHashCodes(STRINGS_WITH_SAME_HASH_CODES);
-    }
-
-    @Test
     void cacheShouldDistinguishTwoDifferentObjectWithSameHash() {
-        for(String string: STRINGS_WITH_SAME_HASH_CODES) {
-            cached.size(string);
-        }
+        assertHaveSameHashCodes(STRINGS_WITH_SAME_HASH_CODES);
+
+        STRINGS_WITH_SAME_HASH_CODES.forEach(value -> cached.size(value));
 
         assertThat(cached.getNumberOfExecution()).isEqualTo(2);
     }
@@ -155,6 +133,14 @@ class CachedMethodTest {
 
     private static void assertHaveSameHashCodes(List<String> values) {
         assertThat(values.stream().map(String::hashCode).collect(toSet())).hasSize(1);
+    }
+
+    private static void sleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
 }
