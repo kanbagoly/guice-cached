@@ -1,8 +1,7 @@
 package com.kanbagoly.guice.cached;
 
-import com.google.common.base.Preconditions;
-
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * Provide equals() and hashCode() methods for the wrapped array.
@@ -16,7 +15,7 @@ class ParameterContainer {
     private final Object[] parameters;
 
     ParameterContainer(Object[] parameters) {
-        this.parameters = Preconditions.checkNotNull(parameters);
+        this.parameters = Objects.requireNonNull(parameters);
     }
 
     @Override
