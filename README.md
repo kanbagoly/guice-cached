@@ -11,7 +11,7 @@ class MyClass {
     }
 }
 ```
-Install `CachedMethodModule` into your Guice module
+install `CachedMethodModule` into your Guice module
 ```java
 class MyModule extends AbstractModule {
     @Override
