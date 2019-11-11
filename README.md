@@ -2,7 +2,7 @@
 Cache solution using Google's Guice to allow caching method calls.
 
 ## usage
-Install `CachedMethodModule` into your module like
+Install `CachedMethodModule` into your Guice module
 ```java
 class MyModule extends AbstractModule {
     @Override
@@ -11,7 +11,7 @@ class MyModule extends AbstractModule {
     }
 }
 ```
-and annotate your method to be cached with the `@Cached` annotation like
+annotate your method to be cached with the `@Cached` annotation
 ```java
 class MyClass {
         @Cached(duration = 10, timeUnit = TimeUnit.MINUTES, maxSize = 100)
@@ -20,7 +20,7 @@ class MyClass {
         }
 }
 ```
-and just get your `MyClass` using Guice and the method calls will be cached
+and get your `MyClass` using Guice's injector and the annotated method calls will be cached
 ```java
 Injector injector = Guice.createInjector(new MyModule());
 MyClass cached = injector.getInstance(MyClass.class);
