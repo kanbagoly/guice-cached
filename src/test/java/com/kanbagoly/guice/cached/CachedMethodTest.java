@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Stream;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.Collectors.toSet;
@@ -45,7 +46,11 @@ class CachedMethodTest {
 
     @Test
     void cachedMethodShouldReturnCorrectValue() {
-        assertThat(cached.meaningOfLife()).isEqualTo(42);
+        int firstResult = cached.meaningOfLife();
+        assertThat(firstResult).isEqualTo(42);
+
+        int cachedResult = cached.meaningOfLife();
+        assertThat(cachedResult).isEqualTo(42);
     }
 
     @Test
@@ -90,10 +95,12 @@ class CachedMethodTest {
     }
 
     @Test
-    void shouldReceiveAnExceptionIfExecutionFailed() {
+    void shouldReceiveExecutionExceptionIfExecutionFailed() {
         assertThatThrownBy(() -> cached.dangerous("throw exception"))
                 .isInstanceOf(ExecutionException.class);
     }
+
+    // TODO: Test the cache's Round Robin behavior
 
     public static class CachedMethods {
 
@@ -108,11 +115,7 @@ class CachedMethodTest {
         @Cached(duration = TIME_TO_LIVE_IN_MS, timeUnit = MILLISECONDS, maxSize = CACHE_SIZE)
         public Integer sumOfSizes(String... strings) {
             ++numberOfExecutions;
-            int sum = 0;
-            for (String string: strings) {
-                sum += string.length();
-            }
-            return sum;
+            return Stream.of(strings).mapToInt(String::length).sum();
         }
 
         @Cached(duration = TIME_TO_LIVE_IN_MS, timeUnit = MILLISECONDS, maxSize = CACHE_SIZE)
