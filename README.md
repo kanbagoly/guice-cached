@@ -14,10 +14,10 @@ class MyModule extends AbstractModule {
 annotate your method to be cached with the `@Cached` annotation
 ```java
 class MyClass {
-        @Cached(duration = 10, timeUnit = TimeUnit.MINUTES, maxSize = 100)
-        public Result expensiveCalculation(Input input) {
-            ...
-        }
+    @Cached(duration = 10, timeUnit = TimeUnit.MINUTES, maxSize = 100)
+    public Result expensiveCalculation(Input input) {
+        ...
+    }
 }
 ```
 and get your `MyClass` using Guice's injector and the annotated method calls will be cached
