@@ -100,8 +100,6 @@ class CachedMethodTest {
                 .isInstanceOf(ExecutionException.class);
     }
 
-    // TODO: Test the cache's Round Robin behavior
-
     public static class CachedMethods {
 
         private int numberOfExecutions = 0;
