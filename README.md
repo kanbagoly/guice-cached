@@ -1,2 +1,2 @@
 # guice-cached
-Library to create cached methods with AOP using Guice
+Cache solution using Google's Guice to allow caching method calls.

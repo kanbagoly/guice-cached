@@ -20,7 +20,7 @@ class CachedMethodTest {
 
     private static final int TIME_TO_LIVE_IN_MS = 200;
 
-    private static final int CACHE_SIZE = 5;
+    private static final int CACHE_SIZE = 2;
 
     private static Injector injector;
     private CachedMethods cached;
