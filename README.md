@@ -20,8 +20,13 @@ class MyModule extends AbstractModule {
     }
 }
 ```
-and get your `MyClass` using Guice's injector and the annotated method calls will be cached
+get your `MyClass` using Guice's injector
 ```java
 Injector injector = Guice.createInjector(new MyModule());
-MyClass cached = injector.getInstance(MyClass.class);
-``` 
+MyClass myObject = injector.getInstance(MyClass.class);
+```
+and the method calls of `expensiveCalculation`
+```java
+myObject.expensiveCalculation(someParameter)
+```
+will be cached.
